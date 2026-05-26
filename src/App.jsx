@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
 
-// 깃허브 보안 검사 로봇이 주소 자체를 인지하지 못하도록 Base64 방식으로 완벽하게 암호화(인코딩) 처리했습니다.
-const ENCRYPTED_SLACK_PATH = "aHR0cHM6Ly9ob29rcy5zbGFjay5jb20vc2VydmljZXMvVDBCNkFFUjJENy9CMEI2Q0FOTEY0NC9HRGJ3ekhwQVBMenFUbmtSNUFvU3kzU2I=";
-const DECRYPT_URL = () => {
-  try {
-    return atob(ENCRYPTED_SLACK_PATH);
-  } catch (e) {
-    return "";
-  }
-};
-
 // 오늘 기준으로 일, 월을 제외한 14일치 예약을 자동 계산하는 기능
 const generateNextDays = (count = 14) => {
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -94,8 +84,9 @@ export default function AcademyReservation() {
   };
 
   const sendSlackNotification = async (bookingInfo) => {
-    const realUrl = DECRYPT_URL();
-    if (!realUrl) return;
+    // Vercel 금고에 넣어둘 보안 이름표(VITE_SLACK_URL)를 불러옵니다.
+    const SLACK_URL = import.meta.env.VITE_SLACK_URL;
+    if (!SLACK_URL) return;
 
     try {
       const slackMessage = {
@@ -108,9 +99,8 @@ export default function AcademyReservation() {
               `\n 📱 학원 사정 조율 후 학부모님께 확정 전화를 드려주세요.`
       };
       
-      await fetch(realUrl, {
+      await fetch(SLACK_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: JSON.stringify(slackMessage)
       });
@@ -212,7 +202,7 @@ export default function AcademyReservation() {
                     <h3 style={{ fontSize: '17px', marginBottom: '18px', color: '#D4AF37' }} className="gmarket-font">[선택 시간] {formattedDateString} {selectedTime.time}</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}><label style={{ fontSize: '13px', color: '#A2B5AC' }}>학생 이름 *</label><input type="text" required style={{ backgroundColor: '#0F1A15', border: '1px solid #233F32', borderRadius: '6px', padding: '11px 12px', color: '#FFF', fontSize: '14px', outline: 'none' }} value={formData.studentName} onChange={e => setFormData({ ...formData, studentName: e.target.value })} /></div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}><label style={{ fontSize: '13px', color: '#A2B5AC' }}>학교명 *</label><input type="text" required style={{ backgroundColor: '#0F1A15', border: '1px solid #233F32', borderRadius: '6px', padding: '11px 12px', color: '#FFF', fontSize: '14px', outline: 'none' }} value={formData.school} onChange={e => setFormData({ ...formData, school: e.target.value })} placeholder="예: 용문고" /></div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}><label style={{ fontSize: '13px', color: '#A2B5AC' }}>학교명 *</label><input type="text" required style={{ backgroundColor: '#0F1A15', border: '1px solid #233F32', borderRadius: '6px', padding: '11px 12px', color: '#FFF', fontSize: '14px', outline: 'none' }} value={formData.school} onChange={e => setFormData({ ...formData, school: e.target.value })} placeholder="예: 용문중" /></div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px', marginTop: '14px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
